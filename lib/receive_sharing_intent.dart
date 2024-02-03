@@ -20,7 +20,7 @@ class ReceiveSharingIntent {
   /// So, you need to delete the file after you finish using it
   static Future<Uri> getInitialMedia() async {
     final uri = await _mChannel.invokeMethod('getInitialMedia');
-    if (uri == null) return Uri();
+    if (uri == null || (Uri.tryParse(uri)==null)) return Uri();
     return uri;
   }
 
