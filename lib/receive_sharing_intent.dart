@@ -9,7 +9,7 @@ class ReceiveSharingIntent {
   static const _eChannelMedia =
       const EventChannel("receive_sharing_intent/events-media");
 
-  static Stream<List<SharedMediaFile>>? _streamMedia;
+  static Stream<Uri>? _streamMedia;
 
   /// Returns a [Future], which completes to one of the following:
   ///
@@ -18,13 +18,10 @@ class ReceiveSharingIntent {
   ///
   /// NOTE. The returned media on iOS (iOS ONLY) is already copied to a temp folder.
   /// So, you need to delete the file after you finish using it
-  static Future<List<SharedMediaFile>> getInitialMedia() async {
-    final json = await _mChannel.invokeMethod('getInitialMedia');
-    if (json == null) return [];
-    final encoded = jsonDecode(json);
-    return encoded
-        .map<SharedMediaFile>((file) => SharedMediaFile.fromMap(file))
-        .toList();
+  static Future<Uri> getInitialMedia() async {
+    final uri = await _mChannel.invokeMethod('getInitialMedia');
+    if (uri == null) return Uri();
+    return uri;
   }
 
   /// Sets up a broadcast stream for receiving incoming media share change events.
@@ -43,19 +40,21 @@ class ReceiveSharingIntent {
   ///
   /// If the app was started by a link intent or user activity the stream will
   /// not emit that initial one - query either the `getInitialMedia` instead.
-  static Stream<List<SharedMediaFile>> getMediaStream() {
+  static Stream<Uri> getMediaStream() {
     if (_streamMedia == null) {
       final stream = _eChannelMedia.receiveBroadcastStream().cast<String?>();
-      _streamMedia = stream.transform<List<SharedMediaFile>>(
-        StreamTransformer<String?, List<SharedMediaFile>>.fromHandlers(
+      _streamMedia = stream.transform<Uri>(
+        StreamTransformer<String?, Uri>.fromHandlers(
           handleData: (data, sink) {
             if (data == null) {
-              sink.add(<SharedMediaFile>[]);
+              sink.add(Uri());
             } else {
-              final encoded = jsonDecode(data);
-              sink.add(encoded
-                  .map<SharedMediaFile>((file) => SharedMediaFile.fromMap(file))
-                  .toList());
+              if(Uri.tryParse(data)!=null) {
+                sink.add((Uri.parse(data)));
+              }
+              else{
+
+              }
             }
           },
         ),

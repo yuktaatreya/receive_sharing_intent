@@ -12,7 +12,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late StreamSubscription _intentSub;
-  final _sharedFiles = <SharedMediaFile>[];
+  Uri _sharedFiles = Uri();
 
   @override
   void initState() {
@@ -21,10 +21,8 @@ class _MyAppState extends State<MyApp> {
     // Listen to media sharing coming from outside the app while the app is in the memory.
     _intentSub = ReceiveSharingIntent.getMediaStream().listen((value) {
       setState(() {
-        _sharedFiles.clear();
-        _sharedFiles.addAll(value);
-
-        print(_sharedFiles.map((f) => f.toMap()));
+        _sharedFiles=value;
+       print(value.query);
       });
     }, onError: (err) {
       print("getIntentDataStream error: $err");
@@ -33,10 +31,8 @@ class _MyAppState extends State<MyApp> {
     // Get the media sharing coming from outside the app while the app is closed.
     ReceiveSharingIntent.getInitialMedia().then((value) {
       setState(() {
-        _sharedFiles.clear();
-        _sharedFiles.addAll(value);
-        print(_sharedFiles.map((f) => f.toMap()));
-
+        _sharedFiles=value;
+        print(value.query);
         // Tell the library that we are done processing the intent.
         ReceiveSharingIntent.reset();
       });
@@ -61,9 +57,7 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             children: <Widget>[
               Text("Shared files:", style: textStyleBold),
-              Text(_sharedFiles
-                  .map((f) => f.toMap())
-                  .join(",\n****************\n")),
+              Text(_sharedFiles.query),
             ],
           ),
         ),
